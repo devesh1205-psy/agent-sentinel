@@ -1,0 +1,36 @@
+{
+  "name": "agent-sentinel",
+  "version": "1.0.0",
+  "description": "100% Pure Dynamic Behavioral Intelligence Firewall, Speculative Micro-Detonation Sandbox & 1-Terminal Runtime Guard for Autonomous AI Coding Agents",
+  "main": "./bin/sentinel.js",
+  "bin": {
+    "sentinel": "./bin/sentinel.js",
+    "asf": "./bin/sentinel.js",
+    "agent-sentinel": "./bin/sentinel.js"
+  },
+  "scripts": {
+    "start": "node ./bin/sentinel.js",
+    "test": "node test/runner.js",
+    "test:unit": "node --test test/**/*.test.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ai-agent",
+    "firewall",
+    "security",
+    "zero-trust",
+    "antigravity",
+    "claude-code",
+    "cursor",
+    "aider",
+    "ast",
+    "sandbox"
+  ],
+  "author": "Devesh Prakash Mishra",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,9 @@
+node_modules/
+.sentinel-quarantine/
+.firewall-quarantine/
+*.log
+.DS_Store
+hackathon_stage.sh
+.env
+.env.*
+!.env.example
