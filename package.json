@@ -2,11 +2,22 @@
   "name": "agent-sentinel",
   "version": "1.0.0",
   "description": "100% Pure Dynamic Behavioral Intelligence Firewall, Speculative Micro-Detonation Sandbox & 1-Terminal Runtime Guard for Autonomous AI Coding Agents",
-  "main": "./bin/sentinel.js",
+  "main": "./src/index.js",
   "bin": {
     "sentinel": "./bin/sentinel.js",
     "asf": "./bin/sentinel.js",
     "agent-sentinel": "./bin/sentinel.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "SETUP_AND_RUN.md",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devesh1205-psy/agent-sentinel.git"
   },
   "scripts": {
     "start": "node ./bin/sentinel.js",
