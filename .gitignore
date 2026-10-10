@@ -10,3 +10,5 @@ hackathon_stage.sh
 __pycache__/
 *.pyc
 production_vault.env
+target/
+*.db
