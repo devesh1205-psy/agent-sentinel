@@ -4,9 +4,9 @@
   "description": "100% Pure Dynamic Behavioral Intelligence Firewall, Speculative Micro-Detonation Sandbox & 1-Terminal Runtime Guard for Autonomous AI Coding Agents",
   "main": "./src/index.js",
   "bin": {
-    "sentinel": "./bin/sentinel.js",
-    "asf": "./bin/sentinel.js",
-    "agent-sentinel": "./bin/sentinel.js"
+    "sentinel": "bin/sentinel.js",
+    "asf": "bin/sentinel.js",
+    "agent-sentinel": "bin/sentinel.js"
   },
   "files": [
     "bin",
