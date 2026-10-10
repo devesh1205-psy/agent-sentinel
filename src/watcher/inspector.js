@@ -34,7 +34,7 @@ class WorkspaceInspector {
       'Applications', 'Movies', 'Music', 'Pictures', '.npm', '.yarn', '.cargo',
       '.rustup', '.local', '.vscode', '.idea', '.cursor', '.DS_Store', 'Containers',
       'cli', 'backend', 'frontend', 'sandbox', 'sandbox-host', 'sandbox-guest',
-      'corsair-bridge', 'scripts', 'bin', 'test'
+      'corsair-bridge', 'scripts', 'bin', 'test', 'src'
     ];
     
     const parts = rel.split(path.sep);
