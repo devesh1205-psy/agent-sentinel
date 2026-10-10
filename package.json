@@ -11,7 +11,9 @@
   "scripts": {
     "start": "node ./bin/sentinel.js",
     "test": "node test/runner.js",
-    "test:unit": "node --test test/**/*.test.js"
+    "test:unit": "node --test test/**/*.test.js",
+    "benchmark": "node scripts/benchmark.js",
+    "simulate": "node scripts/simulate_attacks.js"
   },
   "dependencies": {
     "chokidar": "^3.6.0"
