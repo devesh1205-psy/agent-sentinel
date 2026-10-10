@@ -40,6 +40,12 @@ const TIERS = [
     name: 'Tier 4: 1-Terminal Integration & Live Quarantine End-to-End',
     description: 'CLI commands (status, test, scan), live WorkspaceInspector file watching, quarantine vault, terminal telemetry formatting',
   },
+  {
+    id: 5,
+    file: 'demo-arena.test.js',
+    name: 'Tier 5: Live AI Attack Arena & Programmatic Verification Suite',
+    description: 'Prompt injection simulation, mock destination audit (0 bytes leaked), 5-pillar event flows, and state reset',
+  },
 ];
 
 const c = {
@@ -89,17 +95,17 @@ function parseArgs() {
     } else if (arg === '-t' || arg === '--tier') {
       const val = parseInt(args[++i], 10);
       if (!isNaN(val)) selectedTiers.push(val);
-    } else if (/^tier[1-4]$/i.test(arg)) {
+    } else if (/^tier[1-5]$/i.test(arg)) {
       selectedTiers.push(parseInt(arg.replace(/tier/i, ''), 10));
-    } else if (/^[1-4]$/.test(arg)) {
+    } else if (/^[1-5]$/.test(arg)) {
       selectedTiers.push(parseInt(arg, 10));
     } else if (arg === '--all' || arg === 'all') {
-      selectedTiers = [1, 2, 3, 4];
+      selectedTiers = [1, 2, 3, 4, 5];
     }
   }
 
   if (selectedTiers.length === 0) {
-    selectedTiers = [1, 2, 3, 4];
+    selectedTiers = [1, 2, 3, 4, 5];
   }
 
   return { selectedTiers: [...new Set(selectedTiers)], isList, isWatch };

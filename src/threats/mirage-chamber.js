@@ -437,7 +437,7 @@ class MirageChamber {
       }
 
       // Check network send/sendall/sendto/urlopen/request
-      const netSendMatch = line.match(/\.(sendall|sendto|send|write)\s*\((.+)\)/);
+      const netSendMatch = line.match(/\.(sendall|sendto|send)\s*\((.+)\)/);
       if (netSendMatch || /\b(urllib\.request\.urlopen|requests\.(?:post|get|put))\s*\(/.test(line)) {
         traceState.networkEgress = true;
         traceState.syscallTrace.push('socket_send');
