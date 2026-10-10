@@ -34,7 +34,7 @@ try {
 class CyberHudServer extends EventEmitter {
   constructor(options = {}) {
     super();
-    this.port = options.port || parseInt(process.env.PORT, 10) || 3000;
+    this.port = options.port || parseInt(process.env.PORT, 10) || 3333;
     this.host = options.host || '0.0.0.0';
     this.workspaceRoot = options.workspaceRoot || process.cwd();
     this.sseClients = new Set();

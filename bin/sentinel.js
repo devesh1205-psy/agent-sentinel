@@ -31,7 +31,7 @@ function printHelp() {
     ${c.bold}scan${c.reset} <path>            Perform deep dynamic security scan on a file or directory
     ${c.bold}test${c.reset} "code or prompt"  Evaluate code against dynamic capability policies & Mirage sandbox
     ${c.bold}honey / decept${c.reset} [cmd]     Plant & monitor synthetic honey-token tripwires (plant, status, clean)
-    ${c.bold}hud${c.reset} [port]                 Launch real-time Web Cyber HUD dashboard (default :3000)
+    ${c.bold}hud${c.reset} [port]                 Launch real-time Web Cyber HUD dashboard (default :3333)
     ${c.bold}init${c.reset}                   Create default ${c.dim}.sentinelrc.json${c.reset} policy file
     ${c.bold}status${c.reset}                 Check Sentinel dynamic engine posture & threat cache status
 
@@ -317,7 +317,7 @@ function main() {
 
     case 'hud': {
       const { CyberHudServer } = require('../src/hud/server');
-      const port = parseInt(args[1], 10) || 3000;
+      const port = parseInt(args[1], 10) || 3333;
       const hud = new CyberHudServer({ port, workspaceRoot: process.cwd() });
       hud.start().catch((err) => {
         console.error('Failed to start Cyber HUD:', err);
