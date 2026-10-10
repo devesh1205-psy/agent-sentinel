@@ -1,6 +1,6 @@
 {
   "name": "@devesh_mishra/agent-sentinel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "100% Pure Dynamic Behavioral Intelligence Firewall, Speculative Micro-Detonation Sandbox & 1-Terminal Runtime Guard for Autonomous AI Coding Agents",
   "main": "./src/index.js",
   "bin": {

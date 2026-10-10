@@ -33,6 +33,8 @@ class WorkspaceInspector {
       '.sentinel-quarantine', '.firewall-quarantine', 'Library', 'System', '.Trash', '.gemini', '.cache',
       'Applications', 'Movies', 'Music', 'Pictures', '.npm', '.yarn', '.cargo',
       '.rustup', '.local', '.vscode', '.idea', '.cursor', '.DS_Store', 'Containers',
+      // Windows system junction directories
+      'Application Data', 'AppData', 'Local Settings', 'Cookies', 'Recent', 'SendTo', 'Start Menu', 'Templates',
       'cli', 'backend', 'frontend', 'sandbox', 'sandbox-host', 'sandbox-guest',
       'corsair-bridge', 'scripts', 'bin', 'test', 'src'
     ];
@@ -234,10 +236,22 @@ throw new Error("[AI AGENT FIREWALL] Execution aborted: This file contains quara
     }
 
     if (chokidar) {
+      const defaultIgnored = [
+        /(^|[\/\\])\../,
+        'node_modules', 'target', 'dist', 'build',
+        // Windows junction points and protected folders
+        '**/Application Data/**', '**/AppData/**', '**/Local Settings/**',
+        '**/Cookies/**', '**/Recent/**', '**/SendTo/**', '**/Start Menu/**',
+        '**/Templates/**', '**/NetHood/**', '**/PrintHood/**',
+        // macOS protected folders
+        'Library/**', 'System/**', '.Trash/**',
+      ];
+
       this.watcher = chokidar.watch(this.cwd, {
-        ignored: this.config.ignoredPaths || [/(^|[\/\\])\../, 'node_modules', 'target', 'dist'],
+        ignored: this.config.ignoredPaths || defaultIgnored,
         persistent: true,
         ignoreInitial: true,
+        ignorePermissionErrors: true,
         awaitWriteFinish: {
           stabilityThreshold: 100,
           pollInterval: 50,
@@ -246,21 +260,31 @@ throw new Error("[AI AGENT FIREWALL] Execution aborted: This file contains quara
 
       this.watcher.on('add', (filePath) => this.inspectFile(filePath, 'create'));
       this.watcher.on('change', (filePath) => this.inspectFile(filePath, 'modify'));
+      this.watcher.on('error', (err) => {
+        // Silently ignore OS permission errors on locked junction points
+      });
     } else {
       // Native recursive fs.watch fallback
       const debounceMap = new Map();
-      this.watcher = fs.watch(this.cwd, { recursive: true }, (eventType, filename) => {
-        if (!filename) return;
-        const fullPath = path.join(this.cwd, filename);
-        if (debounceMap.has(fullPath)) {
-          clearTimeout(debounceMap.get(fullPath));
+      try {
+        this.watcher = fs.watch(this.cwd, { recursive: true }, (eventType, filename) => {
+          if (!filename) return;
+          const fullPath = path.join(this.cwd, filename);
+          if (debounceMap.has(fullPath)) {
+            clearTimeout(debounceMap.get(fullPath));
+          }
+          const timer = setTimeout(() => {
+            debounceMap.delete(fullPath);
+            this.inspectFile(fullPath, eventType);
+          }, 120);
+          debounceMap.set(fullPath, timer);
+        });
+        if (this.watcher && typeof this.watcher.on === 'function') {
+          this.watcher.on('error', () => {});
         }
-        const timer = setTimeout(() => {
-          debounceMap.delete(fullPath);
-          this.inspectFile(fullPath, eventType);
-        }, 120);
-        debounceMap.set(fullPath, timer);
-      });
+      } catch (watchErr) {
+        // Ignore initial directory watch permission errors
+      }
     }
 
     if (!embedded) {
