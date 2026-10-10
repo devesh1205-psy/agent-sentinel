@@ -325,6 +325,37 @@ class CyberHudServer extends EventEmitter {
       return;
     }
 
+    // 6b. Ingestion Guard: Document Indirect Prompt Injection Scanner (POST /api/ingestion/scan)
+    if (pathname === '/api/ingestion/scan' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '{}');
+          const documentText = payload.text || payload.content || '';
+          const docPath = payload.filePath || 'document.md';
+          const report = this.hunter ? this.hunter.scanDocument(documentText, docPath) : { hasInjection: false };
+
+          this.broadcast({
+            type: 'INGESTION_SCAN',
+            filePath: docPath,
+            hasInjection: report.hasInjection,
+            riskScore: report.riskScore,
+            verdict: report.verdict,
+            threats: report.threats,
+            timestamp: new Date().toISOString()
+          });
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(report));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message }));
+        }
+      });
+      return;
+    }
+
     // 7. Honey-token Operations API
     if (pathname === '/api/honey/plant' && req.method === 'POST') {
       if (this.deception) {

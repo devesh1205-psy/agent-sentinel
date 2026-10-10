@@ -115,23 +115,32 @@ function runShim() {
       process.exit(1);
     }
 
-    // 2. If executing a script file (e.g. python3 network_test.py, bash exploit.sh, node payload.js),
-    // synchronously inspect the script file BEFORE allowing the interpreter to load it!
+    // 2. If reading or executing a file (e.g. cat README.md, python3 network_test.py, bash exploit.sh),
+    // synchronously inspect the file BEFORE allowing the interpreter or shell to read it!
     if (firstFileArg) {
       const candidatePath = path.resolve(process.cwd(), firstFileArg);
       if (fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
         try {
           const content = fs.readFileSync(candidatePath, 'utf8');
-          if (!content.includes('[AI AGENT FIREWALL] - FILE QUARANTINED')) {
+          if (!content.includes('[AI AGENT FIREWALL] - FILE QUARANTINED') && !content.includes('[AGENT SENTINEL] - DOCUMENT PROMPT INJECTION QUARANTINED')) {
             const fileResult = hunter.scan(content, path.relative(cwd, candidatePath));
             if (fileResult.verdict === 'BLOCKED') {
               const top = fileResult.threats[0];
               process.stderr.write('\x07');
               threatCard(top, path.relative(cwd, candidatePath), top.snippet, top.line);
+
+              const readBins = ['cat', 'head', 'tail', 'less', 'more'];
+              if (readBins.includes(binName) && fileResult.promptInjection) {
+                // Autonomous disarm for reading commands: deliver sanitized content directly to agent
+                console.error(`  ${c.brightMagenta}${c.bold}🛡️ [AGENT SENTINEL] Indirect Prompt Injection disarmed in ${firstFileArg}. Delivering sanitized content.${c.reset}\n`);
+                process.stdout.write(fileResult.sanitizedContent || content);
+                process.exit(0);
+              }
+
               if (config.quarantineBlocked !== false) {
                 quarantineFileSync(candidatePath, cwd, config, top);
               }
-              console.error(`  ${c.brightRed}${c.bold}🛑 [AI AGENT FIREWALL] Blocked execution of malicious script: ${firstFileArg}${c.reset}\n`);
+              console.error(`  ${c.brightRed}${c.bold}🛑 [AGENT SENTINEL] Blocked execution of malicious file: ${firstFileArg}${c.reset}\n`);
               process.exit(1);
             }
           }
@@ -168,7 +177,7 @@ function setupShims(workspaceDir) {
   }
 
   const guardScript = path.resolve(__dirname, 'shim-guard.js');
-  const interceptedBins = ['python3', 'python', 'bash', 'sh', 'curl', 'wget', 'nc', 'ncat', 'socat', 'rm'];
+  const interceptedBins = ['python3', 'python', 'bash', 'sh', 'curl', 'wget', 'nc', 'ncat', 'socat', 'rm', 'cat', 'head', 'tail', 'less'];
 
   for (const bin of interceptedBins) {
     const shimPath = path.join(shimDir, bin);

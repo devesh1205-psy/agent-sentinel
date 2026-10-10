@@ -108,15 +108,23 @@ function threatCard(threat, file, snippet, line = 1) {
   const severityColor = threat.severity === 'CRITICAL' ? 'brightRed' : threat.severity === 'HIGH' ? 'red' : 'yellow';
   const border = c[severityColor] + '─'.repeat(74) + c.reset;
   
+  const isInjection = threat.category === 'Indirect Prompt Injection' ||
+                      threat.category === 'Steganographic Injection' ||
+                      threat.category === 'Delimiter Hijacking';
+
+  const alertHeader = isInjection
+    ? `${c.bold}${c.brightMagenta}🚨 INDIRECT PROMPT INJECTION DETECTED${c.reset}`
+    : `${c.bold}${c.brightRed}🚨 MALICIOUS AGENT CODE DETECTED${c.reset}`;
+
   console.log(`\n  ${border}`);
-  console.log(`  ${c.bold}${c.brightRed}🚨 MALICIOUS AGENT CODE DETECTED${c.reset}   ${c.bold}${c.white}${threat.title}${c.reset} ${c.dim}(Severity: ${threat.severity})${c.reset}`);
+  console.log(`  ${alertHeader}   ${c.bold}${c.white}${threat.title}${c.reset} ${c.dim}(Severity: ${threat.severity})${c.reset}`);
   console.log(`  ${c.gray}Target:${c.reset} ${c.cyan}${file}:${line}${c.reset}`);
   console.log(`  ${c.gray}Risk Score:${c.reset} ${c.brightRed}${threat.riskScore || 85}/100${c.reset} ${c.dim}(Threshold: ≥80 Blocks & Quarantines)${c.reset}`);
   console.log(`  ${c.gray}Attack Category:${c.reset} ${c.yellow}${threat.category || 'Unauthorized Capability'}${c.reset}`);
   console.log(`  ${c.gray}Rule Triggered:${c.reset} ${c.dim}${threat.detail || threat.description}${c.reset}`);
   
   if (snippet) {
-    console.log(`\n  ${c.gray}Offending Code:${c.reset}`);
+    console.log(`\n  ${c.gray}${isInjection ? 'Injected Prompt Payload:' : 'Offending Code:'}${c.reset}`);
     const lines = snippet.split('\n').slice(0, 5);
     lines.forEach((l, idx) => {
       console.log(`    ${c.dim}${String(line + idx).padStart(2)} │${c.reset} ${c.red}${l}${c.reset}`);

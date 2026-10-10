@@ -65,7 +65,7 @@ class WorkspaceInspector {
       return true;
     }
 
-    // Allowable code & configuration extensions
+    // Allowable code, document & configuration extensions
     const codeExtensions = new Set([
       '.js', '.mjs', '.cjs', '.jsx',
       '.ts', '.tsx',
@@ -77,6 +77,7 @@ class WorkspaceInspector {
       '.sql', '.lua', '.pl',
       '.json', '.yaml', '.yml', '.toml',
       '.xml', '.html', '.htm',
+      '.md', '.markdown', '.txt', '.rst', '.prompt',
     ]);
 
     // If it has an extension not in our code list, skip it
@@ -194,6 +195,20 @@ sys.exit("[AI AGENT FIREWALL] Execution aborted: This file contains quarantined 
 # Original copy preserved in ${this.config.quarantineDir || '.firewall-quarantine'}/
 echo "[AI AGENT FIREWALL] Execution aborted: This file contains quarantined malicious code."
 exit 1
+`;
+      } else if (['.md', '.markdown', '.txt', '.rst', '.prompt'].includes(ext)) {
+        warningText = `<!--
+[AGENT SENTINEL] - DOCUMENT PROMPT INJECTION QUARANTINED
+------------------------------------------------------------------
+Threat Detected: ${threat.title} (${threat.severity})
+Rule ID:         ${threat.id}
+Time:            ${new Date().toISOString()}
+
+This document contained an indirect prompt injection payload attempting to hijack the AI agent.
+Original copy preserved in ${this.config.quarantineDir || '.firewall-quarantine'}/
+-->
+# [SECURITY SHIELD ACTIVATED]
+The contents of this document have been neutralized by Agent Sentinel to prevent agent hijacking.
 `;
       } else {
         warningText = `/*

@@ -18,6 +18,7 @@ const { AstAnalyzer } = require('./ast-analyzer');
 const { MirageChamber } = require('./mirage-chamber');
 const { BehavioralBrain } = require('./behavioral-brain');
 const { DeceptionChamber } = require('./deception');
+const { IngestionGuard } = require('./ingestion-guard');
 
 // Global In-Memory Swarm Threat Cache (<0.01ms instant rejection for identical swarm attacks)
 const SWARM_THREAT_CACHE = new Map();
@@ -54,6 +55,7 @@ class ThreatHunter {
       mirageChamber: this.mirageChamber,
     });
     this.deception = new DeceptionChamber({ workspaceRoot: this.workspaceRoot });
+    this.ingestionGuard = new IngestionGuard({ workspaceRoot: this.workspaceRoot });
   }
 
   static get swarmThreatCache() {
@@ -175,6 +177,17 @@ class ThreatHunter {
       }
     }
 
+    // 5. Ingestion Guard: Check for Indirect Prompt Injection in documents or comments
+    const injResult = this.ingestionGuard.scan(code, filePath);
+    if (injResult.hasInjection) {
+      for (const injThreat of injResult.threats) {
+        detectedThreats.push(injThreat);
+      }
+      if (injResult.riskScore > maxRisk) {
+        maxRisk = injResult.riskScore;
+      }
+    }
+
     let verdict = 'ALLOW';
     if (maxRisk >= 80) {
       verdict = 'BLOCKED';
@@ -194,6 +207,8 @@ class ThreatHunter {
       mirageTrace: evalResult.mirageTrace,
       astData: evalResult.astData,
       semanticDivergence,
+      promptInjection: injResult.hasInjection,
+      sanitizedContent: injResult.sanitizedContent,
       cacheHit: false,
       filePath,
       scannedAt: new Date().toISOString(),
@@ -204,6 +219,16 @@ class ThreatHunter {
     }
 
     return report;
+  }
+
+  /**
+   * Dedicated document scanner for Indirect Prompt Injection (READMEs, specs, configs)
+   * @param {string} content Document text content
+   * @param {string} [filePath=''] File path
+   * @returns {object} Ingestion threat report
+   */
+  scanDocument(content, filePath = '') {
+    return this.ingestionGuard.scan(content, filePath);
   }
 
   /**
