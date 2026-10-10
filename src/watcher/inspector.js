@@ -109,7 +109,9 @@ class WorkspaceInspector {
     }
 
     // Skip files that have already been replaced by the firewall quarantine stub
-    if (content.includes('[AI AGENT FIREWALL] - FILE QUARANTINED')) {
+    if (content.includes('[AI AGENT FIREWALL] - FILE QUARANTINED') || 
+        content.includes('[AGENT SENTINEL] - DOCUMENT PROMPT INJECTION QUARANTINED') ||
+        content.includes('[SECURITY SHIELD ACTIVATED]')) {
       return;
     }
 
@@ -232,6 +234,36 @@ throw new Error("[AI AGENT FIREWALL] Execution aborted: This file contains quara
     }
   }
 
+  performInitialSweep() {
+    try {
+      const walk = (dir, depth = 0) => {
+        if (depth > 6) return;
+        let entries;
+        try {
+          entries = fs.readdirSync(dir, { withFileTypes: true });
+        } catch {
+          return;
+        }
+        for (const entry of entries) {
+          const full = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            if (!this.isIgnored(full)) {
+              walk(full, depth + 1);
+            }
+          } else if (entry.isFile()) {
+            if (!this.isIgnored(full)) {
+              this.inspectFile(full, 'initial_sweep');
+            }
+          }
+        }
+      };
+
+      walk(this.cwd);
+    } catch {
+      // ignore initial sweep error
+    }
+  }
+
   start(options = {}) {
     const embedded = options.embedded === true;
     statusLine('WATCH', this.cwd, this.config.mode === 'observe' ? 'OBSERVE ONLY' : 'ZERO-TRUST ENFORCING');
@@ -240,6 +272,9 @@ throw new Error("[AI AGENT FIREWALL] Execution aborted: This file contains quara
     if (path.resolve(this.cwd) === os.homedir()) {
       console.log(`  ${c.yellow}⚠️  Notice: Watching root home directory (~). System files excluded.${c.reset}`);
       console.log(`  ${c.dim}Tip: Run inside your specific project folder (e.g. cd ~/ai-agent-firewall) for targeted monitoring.${c.reset}\n`);
+    } else {
+      // Immediately sweep workspace for pre-existing prompt injections or rogue scripts
+      this.performInitialSweep();
     }
 
     // Try using chokidar if available, else native fs.watch
